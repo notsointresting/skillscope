@@ -1,5 +1,8 @@
 # SkillScope
 
+[![CI](https://github.com/notsointresting/skillscope/actions/workflows/ci.yml/badge.svg)](https://github.com/notsointresting/skillscope/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/cc-skillscope)](https://www.npmjs.com/package/cc-skillscope)
+
 **You have 583 skills, subagents and hooks installed. 28 have ever fired.**
 
 SkillScope reads your local Claude Code session transcripts and tells you which
