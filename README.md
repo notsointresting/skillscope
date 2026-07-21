@@ -78,6 +78,23 @@ and never modifies anything under `~/.claude`.
 Set `CLAUDE_CONFIG_DIR` to analyze a Claude Code directory somewhere other than
 `~/.claude`.
 
+## Wrapped
+
+Generate a shareable SVG stats card:
+
+```bash
+skillscope wrapped --theme dark --out docs/img/card-dark.svg
+skillscope wrapped --theme light --out docs/img/card-light.svg
+```
+
+### Dark theme
+
+![Wrapped card (dark)](docs/img/card-dark.svg)
+
+### Light theme
+
+![Wrapped card (light)](docs/img/card-light.svg)
+
 ## Privacy
 
 - Nothing leaves your machine. There is no telemetry, no network code, and no
