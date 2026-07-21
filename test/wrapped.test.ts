@@ -117,6 +117,7 @@ describe('skillscope wrapped via the CLI', () => {
 
   beforeEach(() => {
     tmp = mkdtempSync(path.join(os.tmpdir(), 'skillscope-'));
+    process.env['SKILLSCOPE_CACHE_DIR'] = path.join(tmp, 'cache');
     out = [];
     err = [];
     vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
@@ -132,6 +133,7 @@ describe('skillscope wrapped via the CLI', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    delete process.env['SKILLSCOPE_CACHE_DIR'];
     rmSync(tmp, { recursive: true, force: true });
     if (previous === undefined) delete process.env['CLAUDE_CONFIG_DIR'];
     else process.env['CLAUDE_CONFIG_DIR'] = previous;

@@ -1,6 +1,6 @@
 {
   "name": "cc-skillscope",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Local-first CLI that reports which Claude Code skills, subagents and hooks actually fire, what they cost, and which are dead weight.",
   "license": "MIT",
   "type": "module",

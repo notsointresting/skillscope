@@ -3,6 +3,8 @@
  * `CLAUDE_CONFIG_DIR` points at the fixtures, so these tests never read the
  * developer's own history.
  */
+import { mkdtempSync, rmSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -14,10 +16,14 @@ const previous = process.env['CLAUDE_CONFIG_DIR'];
 
 let out: string[];
 let err: string[];
+let cacheTmp: string;
 
 beforeEach(() => {
   out = [];
   err = [];
+  // Keep the parse cache out of the developer's real ~/.cache during tests.
+  cacheTmp = mkdtempSync(path.join(os.tmpdir(), 'skillscope-cache-'));
+  process.env['SKILLSCOPE_CACHE_DIR'] = cacheTmp;
   vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
     out.push(String(chunk));
     return true;
@@ -31,6 +37,8 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  rmSync(cacheTmp, { recursive: true, force: true });
+  delete process.env['SKILLSCOPE_CACHE_DIR'];
   if (previous === undefined) delete process.env['CLAUDE_CONFIG_DIR'];
   else process.env['CLAUDE_CONFIG_DIR'] = previous;
 });

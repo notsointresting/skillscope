@@ -11,9 +11,12 @@ import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
 
 import { componentView, cost, report, wrapped, type Format, type Sort } from './commands.js';
+import { diagnose, renderDoctor } from './doctor.js';
+import { findClaudeDirs } from './discovery/claude-dirs.js';
+import { findInstalled } from './discovery/installed.js';
 import { loadReport } from './load.js';
 
-const COMMANDS = ['report', 'skills', 'agents', 'cost', 'wrapped'] as const;
+const COMMANDS = ['report', 'skills', 'agents', 'cost', 'wrapped', 'doctor'] as const;
 type Command = (typeof COMMANDS)[number];
 
 const SORTS: Sort[] = ['fires', 'cost', 'last-used'];
@@ -29,6 +32,7 @@ Commands
   agents            per-subagent detail
   cost              measured tokens by component
   wrapped           shareable SVG stats card
+  doctor            sanity-check installed skills, agents, hooks and plugins
 
 Options
   --json            machine-readable output
@@ -42,6 +46,7 @@ Options
   --all-time        wrapped: whole history (default)
   --theme <name>    wrapped: dark | light   (default: dark)
   --out <file>      wrapped: where to write the SVG (default: skillscope-wrapped.svg)
+  --no-cache        reparse every transcript instead of using ~/.cache/skillscope
   -h, --help        show this
   -v, --version     show version
 
@@ -67,6 +72,7 @@ export async function run(argv: string[]): Promise<number> {
         'all-time': { type: 'boolean', default: false },
         theme: { type: 'string', default: 'dark' },
         out: { type: 'string' },
+        'no-cache': { type: 'boolean', default: false },
         help: { type: 'boolean', short: 'h', default: false },
         version: { type: 'boolean', short: 'v', default: false },
       },
@@ -105,6 +111,14 @@ export async function run(argv: string[]): Promise<number> {
     untracked: values.untracked === true,
   };
 
+  if (command === 'doctor') {
+    // Doctor inspects what is installed; it does not need the transcript history.
+    const dirs = findClaudeDirs();
+    const findings = diagnose(dirs, findInstalled(dirs));
+    process.stdout.write(`${renderDoctor(findings)}\n`);
+    return 0;
+  }
+
   let month: { since: string; until: string; label: string } | undefined;
   if (command === 'wrapped' && values.month) {
     month = monthRange(values.month);
@@ -118,6 +132,7 @@ export async function run(argv: string[]): Promise<number> {
     ...(month ? { since: month.since, until: month.until } : {}),
     ...(!month && values.since ? { since: values.since } : {}),
     ...(values.project ? { project: values.project } : {}),
+    cache: values['no-cache'] !== true,
   });
 
   if (command === 'wrapped') {
