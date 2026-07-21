@@ -41,6 +41,8 @@ export interface Attribution {
   untracked: ComponentUsage[];
   sessions: number;
   projects: number;
+  /** Distinct `YYYY-MM-DD` days with any activity, ascending. Streaks are built from this. */
+  activeDays: string[];
   cost: CostModel;
 }
 
@@ -72,10 +74,12 @@ export function attribute(events: SessionEvent[], installed: InstalledComponent[
   const tallies = new Map<string, Tally>();
   const sessions = new Set<string>();
   const projects = new Set<string>();
+  const days = new Set<string>();
 
   for (const event of events) {
     if (event.sessionId) sessions.add(event.sessionId);
     if (event.project) projects.add(event.project);
+    if (event.timestamp) days.add(event.timestamp.slice(0, 10));
 
     const identity = identify(event);
     if (!identity) continue;
@@ -133,6 +137,7 @@ export function attribute(events: SessionEvent[], installed: InstalledComponent[
     untracked: untracked.sort(byFires),
     sessions: sessionCount,
     projects: projects.size,
+    activeDays: [...days].sort(),
     cost,
   };
 }

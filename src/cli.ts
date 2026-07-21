@@ -6,13 +6,14 @@
  * and eight flags do not need a dependency, and a tool that promises "nothing
  * leaves your machine" is easier to believe with an empty `dependencies` block.
  */
+import { writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
 
-import { componentView, cost, report, type Format, type Sort } from './commands.js';
+import { componentView, cost, report, wrapped, type Format, type Sort } from './commands.js';
 import { loadReport } from './load.js';
 
-const COMMANDS = ['report', 'skills', 'agents', 'cost'] as const;
+const COMMANDS = ['report', 'skills', 'agents', 'cost', 'wrapped'] as const;
 type Command = (typeof COMMANDS)[number];
 
 const SORTS: Sort[] = ['fires', 'cost', 'last-used'];
@@ -27,6 +28,7 @@ Commands
   skills            per-skill detail
   agents            per-subagent detail
   cost              measured tokens by component
+  wrapped           shareable SVG stats card
 
 Options
   --json            machine-readable output
@@ -36,6 +38,10 @@ Options
   --sort <key>      fires | cost | last-used   (default: fires)
   --dead            list what has never fired
   --untracked       list what fired but is not installed
+  --month <YYYY-MM> wrapped: limit the card to one month
+  --all-time        wrapped: whole history (default)
+  --theme <name>    wrapped: dark | light   (default: dark)
+  --out <file>      wrapped: where to write the SVG (default: skillscope-wrapped.svg)
   -h, --help        show this
   -v, --version     show version
 
@@ -57,6 +63,10 @@ export async function run(argv: string[]): Promise<number> {
         sort: { type: 'string', default: 'fires' },
         dead: { type: 'boolean', default: false },
         untracked: { type: 'boolean', default: false },
+        month: { type: 'string' },
+        'all-time': { type: 'boolean', default: false },
+        theme: { type: 'string', default: 'dark' },
+        out: { type: 'string' },
         help: { type: 'boolean', short: 'h', default: false },
         version: { type: 'boolean', short: 'v', default: false },
       },
@@ -95,10 +105,34 @@ export async function run(argv: string[]): Promise<number> {
     untracked: values.untracked === true,
   };
 
+  let month: { since: string; until: string; label: string } | undefined;
+  if (command === 'wrapped' && values.month) {
+    month = monthRange(values.month);
+    if (!month) {
+      process.stderr.write(`--month expects YYYY-MM, got: ${values.month}\n`);
+      return 2;
+    }
+  }
+
   const loaded = await loadReport({
-    ...(values.since ? { since: values.since } : {}),
+    ...(month ? { since: month.since, until: month.until } : {}),
+    ...(!month && values.since ? { since: values.since } : {}),
     ...(values.project ? { project: values.project } : {}),
   });
+
+  if (command === 'wrapped') {
+    let svg: string;
+    try {
+      svg = wrapped(loaded, month ? month.label : 'All time', values.theme as string);
+    } catch (error) {
+      process.stderr.write(`${(error as Error).message}\n`);
+      return 2;
+    }
+    const out = values.out ?? 'skillscope-wrapped.svg';
+    writeFileSync(out, svg);
+    process.stdout.write(`Wrote ${out} — open it in a browser, share it anywhere.\n`);
+    return 0;
+  }
 
   const output =
     command === 'skills'
@@ -111,6 +145,20 @@ export async function run(argv: string[]): Promise<number> {
 
   process.stdout.write(`${output}\n`);
   return 0;
+}
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+  'August', 'September', 'October', 'November', 'December'];
+
+/** "2026-07" -> filter bounds plus a human label. Undefined when malformed. */
+function monthRange(month: string): { since: string; until: string; label: string } | undefined {
+  const match = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!match) return undefined;
+  const year = Number(match[1]);
+  const monthIndex = Number(match[2]) - 1;
+  if (monthIndex < 0 || monthIndex > 11) return undefined;
+  const next = monthIndex === 11 ? `${year + 1}-01` : `${year}-${String(monthIndex + 2).padStart(2, '0')}`;
+  return { since: month, until: next, label: `${MONTHS[monthIndex]} ${year}` };
 }
 
 function version(): string {

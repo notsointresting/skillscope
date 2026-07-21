@@ -13,6 +13,8 @@ export interface LoadOptions {
   home?: string;
   /** ISO date (`YYYY-MM-DD`) — ignore events before it. */
   since?: string;
+  /** ISO date prefix — ignore events on/after it (exclusive). Pairs with `since` for a month. */
+  until?: string;
   /** Only sessions whose project path contains this string. */
   project?: string;
 }
@@ -32,6 +34,7 @@ export async function loadReport(options: LoadOptions = {}): Promise<Report> {
   for (const file of findTranscripts(dirs.projects)) {
     for await (const event of parseTranscript(file, { stats })) {
       if (options.since && event.timestamp && event.timestamp < options.since) continue;
+      if (options.until && event.timestamp && event.timestamp >= options.until) continue;
       if (options.project && !matchesProject(event.project, options.project)) continue;
       events.push(event);
     }

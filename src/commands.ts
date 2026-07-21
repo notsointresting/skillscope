@@ -8,6 +8,8 @@
  */
 import type { ComponentUsage } from './analyze/attribute.js';
 import type { Report } from './load.js';
+import { longestStreak, renderCard, type CardStat } from './render/card/card.js';
+import { themes, type CardTheme } from './render/card/themes/index.js';
 import { renderJson } from './render/json.js';
 import { renderMarkdown } from './render/markdown.js';
 import {
@@ -116,6 +118,36 @@ export function cost(loaded: Report, options: ViewOptions): string {
   ]
     .filter((line) => line !== '')
     .join('\n');
+}
+
+/** `skillscope wrapped` — the shareable SVG stats card. */
+export function wrapped(loaded: Report, period: string, themeName: string): string {
+  const theme: CardTheme | undefined = themes[themeName];
+  if (!theme) {
+    throw new Error(`Unknown theme: ${themeName} (available: ${Object.keys(themes).join(', ')})`);
+  }
+
+  const stat = (usage: ComponentUsage | undefined): CardStat | undefined =>
+    usage ? { name: usage.name, fires: usage.fires } : undefined;
+  const skills = loaded.used.filter((u) => u.kind === 'skill');
+  const agents = loaded.used.filter((u) => u.kind === 'agent');
+  // used is already sorted by fires desc; the rarest is the tail.
+  const rarest = skills.length > 1 ? skills[skills.length - 1] : undefined;
+
+  return renderCard(
+    {
+      period,
+      sessions: loaded.sessions,
+      tokens: loaded.cost.totals.total,
+      ...(stat(skills[0]) ? { topSkill: stat(skills[0]) } : {}),
+      ...(stat(agents[0]) ? { topAgent: stat(agents[0]) } : {}),
+      ...(stat(rarest) ? { rarestSkill: stat(rarest) } : {}),
+      installed: loaded.used.filter((u) => u.installed).length + loaded.dead.length,
+      dead: loaded.dead.length,
+      streak: longestStreak(loaded.activeDays),
+    },
+    theme,
+  );
 }
 
 function filterReport(loaded: Report, kind: ComponentUsage['kind']): Report {
