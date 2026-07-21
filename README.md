@@ -51,6 +51,8 @@ skillscope skills          # every skill that fired
 skillscope skills --dead   # every skill that never fired
 skillscope agents          # subagents
 skillscope cost            # measured tokens per component
+skillscope wrapped         # shareable SVG stats card (--month 2026-07, --theme light)
+skillscope doctor          # sanity-check installed skills, agents and plugins
 ```
 
 Every command accepts:
@@ -64,6 +66,11 @@ Every command accepts:
 | `--sort fires\|cost\|last-used` | ordering (default: `fires`) |
 | `--dead` | what never fired |
 | `--untracked` | what fired but is not installed |
+| `--no-cache` | reparse everything instead of using `~/.cache/skillscope` |
+
+`wrapped` also takes `--month <YYYY-MM>`, `--all-time` (default), `--theme dark|light`
+and `--out <file>`. `doctor` is read-only: it prints findings and the exact fix,
+and never modifies anything under `~/.claude`.
 
 Set `CLAUDE_CONFIG_DIR` to analyze a Claude Code directory somewhere other than
 `~/.claude`.
