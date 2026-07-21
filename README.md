@@ -64,6 +64,7 @@ Every command accepts:
 |---|---|
 | `--json` | machine-readable output |
 | `--md` | markdown, for pasting into an issue |
+| `--csv` | component table as comma-separated values |
 | `--since <YYYY-MM-DD>` | ignore older activity |
 | `--project <text>` | only sessions whose project path contains this text |
 | `--sort fires\|cost\|last-used` | ordering (default: `fires`) |
