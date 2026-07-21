@@ -77,6 +77,7 @@ and never modifies anything under `~/.claude`.
 
 Set `CLAUDE_CONFIG_DIR` to analyze a Claude Code directory somewhere other than
 `~/.claude`.
+
 ## Wrapped
 
 Generate a shareable SVG stats card:
