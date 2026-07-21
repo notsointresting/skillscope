@@ -1,0 +1,9 @@
+{"type":"user","sessionId":"00000000-0000-4000-8000-000000000001","timestamp":"2026-01-01T00:00:00.000Z","cwd":"/home/example/project-a","version":"2.1.207","message":{"role":"user","content":"<command-name>/demo:skill</command-name>"}}
+{"type":"assistant","sessionId":"00000000-0000-4000-8000-000000000001","timestamp":"2026-01-01T00:00:01.000Z","cwd":"/home/example/project-a","version":"2.1.207","message":{"role":"assistant","model":"claude-demo","content":[{"type":"tool_use","id":"toolu_0001","name":"Skill","input":{"skill":"demo:skill"}}],"usage":{"input_tokens":10,"output_tokens":5,"cache_creation_input_tokens":0,"cache_read_input_tokens":0}}}
+{ this line is not json at all
+
+{"type":"brand-new-entry-type-from-the-future","sessionId":"00000000-0000-4000-8000-000000000001","timestamp":"2026-01-01T00:00:02.000Z"}
+{"type":"brand-new-entry-type-from-the-future","sessionId":"00000000-0000-4000-8000-000000000001","timestamp":"2026-01-01T00:00:03.000Z"}
+{"type":"assistant"}
+{"type":"system","subtype":"stop_hook_summary","sessionId":"00000000-0000-4000-8000-000000000001","timestamp":"2026-01-01T00:00:04.000Z","hookCount":2,"hookInfos":[{"command":"bash /home/example/hook.sh","durationMs":12},{"command":"node /home/example/other.js"}]}
+{"type":"assistant","sessionId":"00000000-0000-4000-8000-000000000001","timestamp":"2026-01-01T00:00:05.

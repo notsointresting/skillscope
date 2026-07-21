@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # Paths differ per OS and this tool is all paths, so all three run every time.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [18, 20, 22]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      - run: npm run build
+
+      # The benchmark needs a real ~/.claude, so it stays opt-in and off here.
+      - name: CLI runs with no history present
+        run: node dist/cli.js --json
+        env:
+          CLAUDE_CONFIG_DIR: ${{ runner.temp }}/no-claude-here
