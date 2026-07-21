@@ -67,6 +67,7 @@ describe('report over the fixture history', () => {
     expect(await run([])).toBe(0);
     expect(stdout()).toContain('SkillScope');
     expect(stdout()).toContain('Fired at least once');
+    expect(stdout()).toContain('sessions / active day');
   });
 
   it('emits parseable json', async () => {

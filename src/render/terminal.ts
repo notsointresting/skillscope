@@ -86,11 +86,17 @@ export function renderReport(report: Report): string {
   const agents = report.used.filter((u) => u.kind === 'agent');
   const byTokens = [...report.used].sort((a, b) => b.tokens.total - a.tokens.total).slice(0, 10);
 
+  const perActiveDay =
+    report.activeDays.length > 0 ? report.sessions / report.activeDays.length : 0;
   const lines = [
     bold('SkillScope'),
     dim(
       `${num(report.sessions)} sessions · ${num(report.projects)} projects · ` +
         `${num(report.stats.lines)} transcript lines`,
+    ),
+    dim(
+      `${perActiveDay.toFixed(1)} sessions / active day ` +
+        `(${num(report.activeDays.length)} active days)`,
     ),
     '',
     bold(`Fired at least once: ${num(report.used.length)} of ${num(installedCount)} installed`),
