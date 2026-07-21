@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420" role="img" aria-label="SkillScope Wrapped">
+  <rect width="720" height="420" rx="16" fill="#f7f8fa"/>
+  <text x="40" y="58" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="26" font-weight="700" fill="#1a1d26">SkillScope Wrapped</text>
+  <text x="680" y="58" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#5c6270">All time</text>
+
+  <text x="40" y="140" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="46" font-weight="700" fill="#2f6fed">2</text>
+  <text x="40" y="164" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#5c6270">sessions</text>
+  <text x="240" y="140" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="46" font-weight="700" fill="#2f6fed">146.4k</text>
+  <text x="240" y="164" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#5c6270">tokens measured</text>
+
+  <rect x="32" y="188" width="656" height="150" rx="12" fill="#ffffff"/>
+  <text x="52" y="228" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#5c6270">Top skill</text>
+  <text x="200" y="228" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#1a1d26">—</text>
+  <text x="668" y="228" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#2f6fed"></text>
+  <text x="52" y="272" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#5c6270">Top subagent</text>
+  <text x="200" y="272" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#1a1d26">—</text>
+  <text x="668" y="272" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#2f6fed"></text>
+  <text x="52" y="316" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#5c6270">Rarest catch</text>
+  <text x="200" y="316" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#1a1d26">—</text>
+  <text x="668" y="316" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#2f6fed"></text>
+
+  <text x="40" y="376" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#1a1d26">nothing installed yet</text>
+  <text x="680" y="376" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#2f6fed">1-day streak</text>
+  <text x="40" y="402" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#5c6270">cc-skillscope · everything stays on your machine</text>
+</svg>
