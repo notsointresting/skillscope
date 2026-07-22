@@ -8,7 +8,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { compact, longestStreak, renderCard, type CardStats } from '../src/render/card/card.js';
+import {
+  busiestDay,
+  compact,
+  longestStreak,
+  renderCard,
+  type CardStats,
+} from '../src/render/card/card.js';
 import { themes } from '../src/render/card/themes/index.js';
 import { run } from '../src/cli.js';
 
@@ -163,5 +169,26 @@ describe('skillscope wrapped via the CLI', () => {
     expect(await run(['wrapped', '--theme', 'vaporwave'])).toBe(2);
     expect(err.join('')).toContain('Unknown theme: vaporwave');
     expect(err.join('')).toContain('dark');
+  });
+});
+
+describe('busiestDay', () => {
+  it('is undefined with no active days', () => {
+    expect(busiestDay([])).toBeUndefined();
+  });
+
+  it('picks the weekday that appears most often', () => {
+    // 2024-01-01, -08, -15 are Mondays; 2024-01-02 is a Tuesday (hand-counted).
+    expect(busiestDay(['2024-01-01', '2024-01-08', '2024-01-15', '2024-01-02'])).toBe('Monday');
+  });
+
+  it('breaks ties toward the earlier weekday (Sun..Sat)', () => {
+    // One Monday, one Tuesday — Monday (index 1) wins over Tuesday (index 2).
+    expect(busiestDay(['2024-01-02', '2024-01-01'])).toBe('Monday');
+  });
+
+  it('renders on the card when set', () => {
+    const svg = renderCard({ ...base, busiestDay: 'Monday' }, dark);
+    expect(svg).toContain('busiest Monday');
   });
 });
