@@ -1,6 +1,7 @@
 /**
  * Card themes. Each theme is a tiny module — adding one is a perfect first PR.
  */
+import { catppuccin } from './catppuccin.js';
 import { dark } from './dark.js';
 import { light } from './light.js';
 
@@ -19,6 +20,7 @@ export interface CardTheme {
 }
 
 export const themes: Record<string, CardTheme> = {
+  catppuccin,
   dark,
   light,
 };
