@@ -40,7 +40,9 @@ Rules that matter more than style:
 ## Fixtures are the contract
 
 `test/fixtures/*.jsonl` are real transcripts with every piece of prose removed.
-They are how we know a parser change did not break anything.
+They are how we know a parser change did not break anything. For what each
+transcript entry `type` looks like and which ones skillscope reads, see
+[docs/transcript-format.md](docs/transcript-format.md).
 
 Regenerate or add one with:
 
