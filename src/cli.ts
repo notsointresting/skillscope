@@ -37,6 +37,7 @@ Commands
 Options
   --json            machine-readable output
   --md              markdown, for pasting into an issue
+  --csv             component table as comma-separated values
   --since <date>    ignore activity before this date (YYYY-MM-DD)
   --project <text>  only sessions whose project path contains this text
   --sort <key>      fires | cost | last-used   (default: fires)
@@ -63,6 +64,7 @@ export async function run(argv: string[]): Promise<number> {
       options: {
         json: { type: 'boolean', default: false },
         md: { type: 'boolean', default: false },
+        csv: { type: 'boolean', default: false },
         since: { type: 'string' },
         project: { type: 'string' },
         sort: { type: 'string', default: 'fires' },
@@ -105,7 +107,7 @@ export async function run(argv: string[]): Promise<number> {
   }
 
   const view = {
-    format: (values.json ? 'json' : values.md ? 'md' : 'terminal') as Format,
+    format: (values.json ? 'json' : values.md ? 'md' : values.csv ? 'csv' : 'terminal') as Format,
     sort,
     dead: values.dead === true,
     untracked: values.untracked === true,

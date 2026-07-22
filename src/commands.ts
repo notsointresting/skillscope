@@ -10,6 +10,7 @@ import type { ComponentUsage } from './analyze/attribute.js';
 import type { Report } from './load.js';
 import { longestStreak, renderCard, type CardStat } from './render/card/card.js';
 import { themes, type CardTheme } from './render/card/themes/index.js';
+import { renderCsv } from './render/csv.js';
 import { renderJson } from './render/json.js';
 import { renderMarkdown } from './render/markdown.js';
 import {
@@ -22,7 +23,7 @@ import {
   table,
 } from './render/terminal.js';
 
-export type Format = 'terminal' | 'json' | 'md';
+export type Format = 'terminal' | 'json' | 'md' | 'csv';
 export type Sort = 'fires' | 'cost' | 'last-used';
 
 export interface ViewOptions {
@@ -41,6 +42,7 @@ const sorters: Record<Sort, (a: ComponentUsage, b: ComponentUsage) => number> = 
 };
 
 export function report(loaded: Report, options: ViewOptions): string {
+  if (options.format === 'csv') return renderCsv(loaded);
   if (options.format === 'json') return renderJson(loaded);
   if (options.format === 'md') return renderMarkdown(loaded);
   return renderReport(loaded);
@@ -52,6 +54,7 @@ export function componentView(
   kind: ComponentUsage['kind'],
   options: ViewOptions,
 ): string {
+  if (options.format === 'csv') return renderCsv(filterReport(loaded, kind));
   if (options.format === 'json') return renderJson(filterReport(loaded, kind));
   if (options.format === 'md') return renderMarkdown(filterReport(loaded, kind));
   if (!loaded.dirs.exists) return renderEmptyState(loaded);
@@ -88,6 +91,7 @@ export function componentView(
 }
 
 export function cost(loaded: Report, options: ViewOptions): string {
+  if (options.format === 'csv') return renderCsv(loaded);
   if (options.format === 'json') return renderJson(loaded);
   if (options.format === 'md') return renderMarkdown(loaded);
   if (!loaded.dirs.exists) return renderEmptyState(loaded);
