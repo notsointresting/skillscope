@@ -24,11 +24,70 @@ interface InstalledPluginsFile {
 export function diagnose(dirs: ClaudeDirs, installed: InstalledComponent[]): Finding[] {
   return [
     ...frontmatterFindings(installed),
+    ...longDescriptionFindings(installed),
     ...duplicateFindings(installed),
     ...unavailableMcpFindings(installed),
     ...wrongDirFindings(dirs),
     ...orphanedPluginFindings(dirs),
   ];
+}
+
+/** Above this, a description is worth a nudge to trim. */
+const LONG_DESCRIPTION = 1000;
+
+/**
+ * Every installed skill/agent has its `description:` loaded into context every
+ * session, so a very long one is a standing token cost. Flag the outliers.
+ */
+function longDescriptionFindings(installed: InstalledComponent[]): Finding[] {
+  const findings: Finding[] = [];
+  for (const component of installed) {
+    if (component.kind !== 'skill' && component.kind !== 'agent') continue;
+    const head = readHead(component.path);
+    if (head === undefined) continue;
+    const description = frontmatterDescription(head);
+    if (description !== undefined && description.length > LONG_DESCRIPTION) {
+      findings.push({
+        check: 'description-length',
+        subject: component.name,
+        detail: `${component.path} has a ${description.length}-character description — it is loaded into context every session`,
+        fix: `shorten the description to a line or two (aim for under ${LONG_DESCRIPTION} characters)`,
+      });
+    }
+  }
+  return findings;
+}
+
+/**
+ * The `description:` value from a frontmatter head, including a block scalar
+ * (`>`/`|`) that continues onto more-indented lines. Undefined when there is no
+ * frontmatter or no description key.
+ */
+function frontmatterDescription(head: string): string | undefined {
+  if (!head.startsWith('---')) return undefined;
+  const closing = head.indexOf('\n---', 3);
+  const block = closing === -1 ? head : head.slice(0, closing);
+  const lines = block.split('\n');
+  const start = lines.findIndex((line) => /^description\s*:/.test(line));
+  if (start === -1) return undefined;
+
+  const first = lines[start]!.replace(/^description\s*:/, '').trim();
+  const isBlockScalar = /^[>|][+-]?\d*$/.test(first);
+  const parts = isBlockScalar ? [] : [first];
+
+  // Collect continuation lines: anything indented deeper than the key belongs to
+  // it (block-scalar body); a line at the key's indent or less is the next key.
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i]!;
+    if (line.trim() === '') continue;
+    if (!/^\s/.test(line)) break;
+    parts.push(line.trim());
+  }
+
+  return parts
+    .join(' ')
+    .replace(/^["']|["']$/g, '')
+    .trim();
 }
 
 /** Skills and agents need YAML frontmatter with a description, or they never trigger. */

@@ -97,3 +97,37 @@ describe('diagnose', () => {
     expect(checks[0]?.fix).toContain('reinstall');
   });
 });
+
+describe('description length', () => {
+  const longText = 'x'.repeat(1200);
+
+  it('flags a skill whose inline description is very long', () => {
+    write('.claude/skills/verbose/SKILL.md', `---\nname: verbose\ndescription: ${longText}\n---\n\nBody.\n`);
+    const installed: InstalledComponent[] = [
+      { kind: 'skill', name: 'verbose', source: 'user', path: path.join(home, '.claude/skills/verbose/SKILL.md') },
+    ];
+    const checks = diagnose(dirs(), installed).filter((f) => f.check === 'description-length');
+    expect(checks).toHaveLength(1);
+    expect(checks[0]?.subject).toBe('verbose');
+    expect(checks[0]?.detail).toContain('loaded into context every session');
+  });
+
+  it('flags a block-scalar description that continues onto indented lines', () => {
+    const body = `---\nname: folded\ndescription: >\n  ${longText}\n  ${longText}\nmodel: sonnet\n---\n\nBody.\n`;
+    write('.claude/agents/folded.md', body);
+    const installed: InstalledComponent[] = [
+      { kind: 'agent', name: 'folded', source: 'user', path: path.join(home, '.claude/agents/folded.md') },
+    ];
+    const checks = diagnose(dirs(), installed).filter((f) => f.check === 'description-length');
+    expect(checks).toHaveLength(1);
+  });
+
+  it('does not flag a normal-length description', () => {
+    write('.claude/skills/fine/SKILL.md', GOOD);
+    const installed: InstalledComponent[] = [
+      { kind: 'skill', name: 'fine', source: 'user', path: path.join(home, '.claude/skills/fine/SKILL.md') },
+    ];
+    const checks = diagnose(dirs(), installed).filter((f) => f.check === 'description-length');
+    expect(checks).toEqual([]);
+  });
+});
