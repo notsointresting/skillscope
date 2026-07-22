@@ -6,6 +6,7 @@
  * and eight flags do not need a dependency, and a tool that promises "nothing
  * leaves your machine" is easier to believe with an empty `dependencies` block.
  */
+import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
@@ -47,6 +48,7 @@ Options
   --all-time        wrapped: whole history (default)
   --theme <name>    wrapped: dark | light   (default: dark)
   --out <file>      wrapped: where to write the SVG (default: skillscope-wrapped.svg)
+  --open            wrapped: open the written SVG in the default app
   --no-cache        reparse every transcript instead of using ~/.cache/skillscope
   -h, --help        show this
   -v, --version     show version
@@ -74,6 +76,7 @@ export async function run(argv: string[]): Promise<number> {
         'all-time': { type: 'boolean', default: false },
         theme: { type: 'string', default: 'dark' },
         out: { type: 'string' },
+        open: { type: 'boolean', default: false },
         'no-cache': { type: 'boolean', default: false },
         help: { type: 'boolean', short: 'h', default: false },
         version: { type: 'boolean', short: 'v', default: false },
@@ -148,6 +151,7 @@ export async function run(argv: string[]): Promise<number> {
     const out = values.out ?? 'skillscope-wrapped.svg';
     writeFileSync(out, svg);
     process.stdout.write(`Wrote ${out} — open it in a browser, share it anywhere.\n`);
+    if (values.open) openInDefaultApp(out);
     return 0;
   }
 
@@ -176,6 +180,27 @@ function monthRange(month: string): { since: string; until: string; label: strin
   if (monthIndex < 0 || monthIndex > 11) return undefined;
   const next = monthIndex === 11 ? `${year + 1}-01` : `${year}-${String(monthIndex + 2).padStart(2, '0')}`;
   return { since: month, until: next, label: `${MONTHS[monthIndex]} ${year}` };
+}
+
+/**
+ * Open a file with the platform default app. Best-effort: a launch failure is
+ * printed and swallowed, never fatal — the card is already written to disk.
+ */
+function openInDefaultApp(file: string): void {
+  const command =
+    process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+  try {
+    // `start` is a cmd.exe builtin, not an executable, so it needs a shell.
+    const child = spawn(command, [file], {
+      detached: true,
+      stdio: 'ignore',
+      shell: process.platform === 'win32',
+    });
+    child.on('error', () => process.stderr.write(`Could not open ${file} automatically.\n`));
+    child.unref();
+  } catch {
+    process.stderr.write(`Could not open ${file} automatically.\n`);
+  }
 }
 
 function version(): string {
