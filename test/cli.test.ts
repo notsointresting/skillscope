@@ -60,6 +60,14 @@ describe('argument handling', () => {
     expect(await run(['skills', '--sort', 'sideways'])).toBe(2);
     expect(err.join('')).toContain('Unknown --sort: sideways');
   });
+
+  it('accepts --sort name and --sort sessions', async () => {
+    for (const key of ['name', 'sessions']) {
+      out.length = 0;
+      expect(await run(['skills', '--sort', key, '--json'])).toBe(0);
+      expect(() => JSON.parse(stdout())).not.toThrow();
+    }
+  });
 });
 
 describe('report over the fixture history', () => {

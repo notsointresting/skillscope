@@ -19,7 +19,7 @@ import { loadReport } from './load.js';
 const COMMANDS = ['report', 'skills', 'agents', 'cost', 'wrapped', 'doctor'] as const;
 type Command = (typeof COMMANDS)[number];
 
-const SORTS: Sort[] = ['fires', 'cost', 'last-used'];
+const SORTS: Sort[] = ['fires', 'cost', 'last-used', 'name', 'sessions'];
 
 const HELP = `skillscope — which Claude Code skills, subagents and hooks actually fire
 
@@ -40,7 +40,7 @@ Options
   --csv             component table as comma-separated values
   --since <date>    ignore activity before this date (YYYY-MM-DD)
   --project <text>  only sessions whose project path contains this text
-  --sort <key>      fires | cost | last-used   (default: fires)
+  --sort <key>      fires | cost | last-used | name | sessions   (default: fires)
   --dead            list what has never fired
   --untracked       list what fired but is not installed
   --month <YYYY-MM> wrapped: limit the card to one month

@@ -24,7 +24,7 @@ import {
 } from './render/terminal.js';
 
 export type Format = 'terminal' | 'json' | 'md' | 'csv';
-export type Sort = 'fires' | 'cost' | 'last-used';
+export type Sort = 'fires' | 'cost' | 'last-used' | 'name' | 'sessions';
 
 export interface ViewOptions {
   format: Format;
@@ -39,6 +39,8 @@ const sorters: Record<Sort, (a: ComponentUsage, b: ComponentUsage) => number> = 
   fires: (a, b) => b.fires - a.fires || a.name.localeCompare(b.name),
   cost: (a, b) => b.tokens.total - a.tokens.total || a.name.localeCompare(b.name),
   'last-used': (a, b) => (b.lastFired ?? '').localeCompare(a.lastFired ?? ''),
+  name: (a, b) => a.name.localeCompare(b.name),
+  sessions: (a, b) => b.sessions - a.sessions || a.name.localeCompare(b.name),
 };
 
 export function report(loaded: Report, options: ViewOptions): string {
@@ -54,9 +56,9 @@ export function componentView(
   kind: ComponentUsage['kind'],
   options: ViewOptions,
 ): string {
-  if (options.format === 'csv') return renderCsv(filterReport(loaded, kind));
-  if (options.format === 'json') return renderJson(filterReport(loaded, kind));
-  if (options.format === 'md') return renderMarkdown(filterReport(loaded, kind));
+  if (options.format === 'csv') return renderCsv(filterReport(loaded, kind, options.sort));
+  if (options.format === 'json') return renderJson(filterReport(loaded, kind, options.sort));
+  if (options.format === 'md') return renderMarkdown(filterReport(loaded, kind, options.sort));
   if (!loaded.dirs.exists) return renderEmptyState(loaded);
 
   const label = kind === 'skill' ? 'Skills' : kind === 'agent' ? 'Subagents' : kind;
@@ -154,11 +156,12 @@ export function wrapped(loaded: Report, period: string, themeName: string): stri
   );
 }
 
-function filterReport(loaded: Report, kind: ComponentUsage['kind']): Report {
+function filterReport(loaded: Report, kind: ComponentUsage['kind'], sort: Sort): Report {
+  const sorter = sorters[sort];
   return {
     ...loaded,
-    used: loaded.used.filter((u) => u.kind === kind),
-    untracked: loaded.untracked.filter((u) => u.kind === kind),
+    used: loaded.used.filter((u) => u.kind === kind).sort(sorter),
+    untracked: loaded.untracked.filter((u) => u.kind === kind).sort(sorter),
     dead: loaded.dead.filter((c) => c.kind === kind),
   };
 }
