@@ -45,7 +45,7 @@ Options
   --untracked       list what fired but is not installed
   --month <YYYY-MM> wrapped: limit the card to one month
   --all-time        wrapped: whole history (default)
-  --theme <name>    wrapped: dark | light   (default: dark)
+  --theme <name>    wrapped: card color theme (default: dark)
   --out <file>      wrapped: where to write the SVG (default: skillscope-wrapped.svg)
   --no-cache        reparse every transcript instead of using ~/.cache/skillscope
   -h, --help        show this
