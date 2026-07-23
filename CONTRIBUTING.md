@@ -88,6 +88,13 @@ Look for the `good first issue` label. Most of them are one of:
 - a theme for the Phase 4 stats card
 - documentation of a transcript field we do not use yet
 
+## Pace
+
+We want a wide range of people shipping to skillscope, not just whoever is
+fastest. Please keep to **1-2 open PRs at a time** -- grab another `good first
+issue` once your current one merges. If every issue gets claimed within
+minutes of being opened, newer contributors never get a chance to try.
+
 ## Pull requests
 
 - Conventional commit subject (`feat:`, `fix:`, `docs:`…).
