@@ -4,6 +4,7 @@
 import { dark } from './dark.js';
 import { dracula } from './dracula.js';
 import { light } from './light.js';
+import { nord } from './nord.js';
 
 export interface CardTheme {
   name: string;
@@ -23,4 +24,5 @@ export const themes: Record<string, CardTheme> = {
   dark,
   dracula,
   light,
+  nord,
 };
