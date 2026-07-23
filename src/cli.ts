@@ -17,7 +17,7 @@ import { findClaudeDirs } from './discovery/claude-dirs.js';
 import { findInstalled } from './discovery/installed.js';
 import { loadReport } from './load.js';
 
-const COMMANDS = ['report', 'skills', 'agents', 'hooks', 'cost', 'wrapped', 'doctor'] as const;
+const COMMANDS = ['report', 'skills', 'agents', 'hooks', 'mcp', 'cost', 'wrapped', 'doctor'] as const;
 type Command = (typeof COMMANDS)[number];
 
 const SORTS: Sort[] = ['fires', 'cost', 'last-used', 'name', 'sessions'];
@@ -32,6 +32,7 @@ Commands
   skills            per-skill detail
   agents            per-subagent detail
   hooks             per-hook detail
+  mcp               per-MCP-server detail
   cost              measured tokens by component
   wrapped           shareable SVG stats card
   doctor            sanity-check installed skills, agents, hooks and plugins
@@ -163,9 +164,11 @@ export async function run(argv: string[]): Promise<number> {
         ? componentView(loaded, 'agent', view)
         : command === 'hooks'
           ? componentView(loaded, 'hook', view)
-          : command === 'cost'
-            ? cost(loaded, view)
-            : report(loaded, view);
+          : command === 'mcp'
+            ? componentView(loaded, 'mcp', view)
+            : command === 'cost'
+              ? cost(loaded, view)
+              : report(loaded, view);
 
   process.stdout.write(`${output}\n`);
   return 0;
