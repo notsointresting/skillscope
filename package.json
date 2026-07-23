@@ -1,6 +1,6 @@
 {
   "name": "cc-skillscope",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Local-first CLI that reports which Claude Code skills, subagents and hooks actually fire, what they cost, and which are dead weight.",
   "license": "MIT",
   "repository": {
@@ -21,7 +21,15 @@
   "files": [
     "dist"
   ],
-  "keywords": ["claude", "claude-code", "skills", "subagents", "hooks", "tokens", "cli"],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skills",
+    "subagents",
+    "hooks",
+    "tokens",
+    "cli"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
