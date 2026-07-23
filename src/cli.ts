@@ -12,10 +12,11 @@ import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
 
 import { componentView, cost, report, wrapped, type Format, type Sort } from './commands.js';
-import { diagnose, renderDoctor } from './doctor.js';
+import { diagnose, renderDoctor, renderDoctorJson, renderDoctorMarkdown } from './doctor.js';
 import { findClaudeDirs } from './discovery/claude-dirs.js';
 import { findInstalled } from './discovery/installed.js';
 import { loadReport } from './load.js';
+import { renderFindingsCsv } from './render/csv.js';
 
 const COMMANDS = ['report', 'skills', 'agents', 'hooks', 'cost', 'wrapped', 'doctor'] as const;
 type Command = (typeof COMMANDS)[number];
@@ -121,7 +122,15 @@ export async function run(argv: string[]): Promise<number> {
     // Doctor inspects what is installed; it does not need the transcript history.
     const dirs = findClaudeDirs();
     const findings = diagnose(dirs, findInstalled(dirs));
-    process.stdout.write(`${renderDoctor(findings)}\n`);
+    const rendered =
+      view.format === 'json'
+        ? renderDoctorJson(findings)
+        : view.format === 'md'
+          ? renderDoctorMarkdown(findings)
+          : view.format === 'csv'
+            ? renderFindingsCsv(findings)
+            : renderDoctor(findings);
+    process.stdout.write(`${rendered}\n`);
     return 0;
   }
 

@@ -232,6 +232,53 @@ export function renderDoctor(findings: Finding[]): string {
   return lines.join('\n');
 }
 
+/**
+ * `doctor --json`. Stable shape, same contract as the report renderer: adding
+ * fields is fine, renaming is not. `fix` is omitted when absent rather than
+ * emitted as null, so a consumer can test for the key.
+ */
+export function renderDoctorJson(findings: Finding[]): string {
+  return JSON.stringify(
+    {
+      generatedBy: 'skillscope',
+      findingCount: findings.length,
+      findings: findings.map((finding) => ({
+        check: finding.check,
+        subject: finding.subject,
+        detail: finding.detail,
+        ...(finding.fix ? { fix: finding.fix } : {}),
+      })),
+    },
+    null,
+    2,
+  );
+}
+
+/** `doctor --md`, for pasting into an issue. */
+export function renderDoctorMarkdown(findings: Finding[]): string {
+  if (findings.length === 0) {
+    return ['# SkillScope doctor', '', 'Everything looks healthy — no findings.'].join('\n');
+  }
+  // A detail carries file paths and a fix carries shell commands; either could
+  // hold a pipe, which would otherwise split the row into phantom columns.
+  const cell = (value: string): string => value.replaceAll('|', '\\|');
+  return [
+    '# SkillScope doctor',
+    '',
+    `${findings.length} finding${findings.length === 1 ? '' : 's'}.`,
+    '',
+    '| Check | Subject | Detail | Fix |',
+    '| --- | --- | --- | --- |',
+    ...findings.map(
+      (finding) =>
+        `| ${cell(finding.check)} | ${cell(finding.subject)} | ${cell(finding.detail)} | ` +
+        `${finding.fix ? cell(finding.fix) : '—'} |`,
+    ),
+    '',
+    '_doctor never modifies anything — every fix above is yours to apply._',
+  ].join('\n');
+}
+
 function readHead(file: string): string | undefined {
   try {
     return fs.readFileSync(file, 'utf8').slice(0, 4096);
