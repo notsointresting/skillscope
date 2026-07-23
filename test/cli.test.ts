@@ -128,6 +128,29 @@ describe('hooks command', () => {
   });
 });
 
+describe('doctor output formats', () => {
+  it('honours --json', async () => {
+    expect(await run(['doctor', '--json'])).toBe(0);
+    const parsed = JSON.parse(stdout()) as { generatedBy: string; findings: unknown[] };
+    expect(parsed.generatedBy).toBe('skillscope');
+    expect(Array.isArray(parsed.findings)).toBe(true);
+  });
+
+  it('honours --md and --csv', async () => {
+    expect(await run(['doctor', '--md'])).toBe(0);
+    expect(stdout()).toContain('# SkillScope doctor');
+
+    out.length = 0;
+    expect(await run(['doctor', '--csv'])).toBe(0);
+    expect(stdout()).toContain('check,subject,detail,fix');
+  });
+
+  it('still defaults to the plain-text report', async () => {
+    expect(await run(['doctor'])).toBe(0);
+    expect(stdout()).toContain('doctor:');
+  });
+});
+
 describe('no history to read', () => {
   it('explains instead of failing', async () => {
     process.env['CLAUDE_CONFIG_DIR'] = path.join(FIXTURES, 'nowhere');

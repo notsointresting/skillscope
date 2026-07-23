@@ -8,6 +8,18 @@ function escapeCsv(value: string | number | undefined): string {
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
+/** `doctor --csv` — findings are already a flat table, so they map directly. */
+export function renderFindingsCsv(
+  findings: { check: string; subject: string; detail: string; fix?: string }[],
+): string {
+  return [
+    ['check', 'subject', 'detail', 'fix'],
+    ...findings.map((finding) => [finding.check, finding.subject, finding.detail, finding.fix]),
+  ]
+    .map((row) => row.map(escapeCsv).join(','))
+    .join('\n');
+}
+
 export function renderCsv(report: Pick<Report, 'used' | 'untracked'>): string {
   const rows = [...report.used, ...report.untracked];
   return [
