@@ -43,6 +43,7 @@ Options
   --since <date>    ignore activity before this date (YYYY-MM-DD)
   --project <text>  only sessions whose project path contains this text
   --sort <key>      fires | cost | last-used | name | sessions   (default: fires)
+  --top <n>         show at most n component rows (default: all)
   --dead            list what has never fired
   --untracked       list what fired but is not installed
   --month <YYYY-MM> wrapped: limit the card to one month
@@ -71,6 +72,7 @@ export async function run(argv: string[]): Promise<number> {
         since: { type: 'string' },
         project: { type: 'string' },
         sort: { type: 'string', default: 'fires' },
+        top: { type: 'string' },
         dead: { type: 'boolean', default: false },
         untracked: { type: 'boolean', default: false },
         month: { type: 'string' },
@@ -110,11 +112,21 @@ export async function run(argv: string[]): Promise<number> {
     return 2;
   }
 
+  let top: number | undefined;
+  if (values.top !== undefined) {
+    top = Number(values.top);
+    if (!Number.isInteger(top) || top < 1) {
+      process.stderr.write(`--top expects a positive integer, got: ${values.top}\n`);
+      return 2;
+    }
+  }
+
   const view = {
     format: (values.json ? 'json' : values.md ? 'md' : values.csv ? 'csv' : 'terminal') as Format,
     sort,
     dead: values.dead === true,
     untracked: values.untracked === true,
+    ...(top === undefined ? {} : { top }),
   };
 
   if (command === 'doctor') {

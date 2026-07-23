@@ -33,7 +33,26 @@ export interface ViewOptions {
   dead?: boolean;
   /** Show what fired but is not installed. */
   untracked?: boolean;
+  /** Cap how many component rows are shown, applied after sorting. Unlimited when unset. */
+  top?: number;
 }
+
+/**
+ * Cap a report's component lists to the first `top` rows. Applied after sorting
+ * and to the Report itself, so terminal, json, md and csv all cap identically.
+ */
+function capReport(report: Report, top: number | undefined): Report {
+  if (top === undefined) return report;
+  return {
+    ...report,
+    used: report.used.slice(0, top),
+    untracked: report.untracked.slice(0, top),
+    dead: report.dead.slice(0, top),
+  };
+}
+
+const capRows = <T>(rows: T[], top: number | undefined): T[] =>
+  top === undefined ? rows : rows.slice(0, top);
 
 const sorters: Record<Sort, (a: ComponentUsage, b: ComponentUsage) => number> = {
   fires: (a, b) => b.fires - a.fires || a.name.localeCompare(b.name),
@@ -44,10 +63,11 @@ const sorters: Record<Sort, (a: ComponentUsage, b: ComponentUsage) => number> = 
 };
 
 export function report(loaded: Report, options: ViewOptions): string {
-  if (options.format === 'csv') return renderCsv(loaded);
-  if (options.format === 'json') return renderJson(loaded);
-  if (options.format === 'md') return renderMarkdown(loaded);
-  return renderReport(loaded);
+  const capped = capReport(loaded, options.top);
+  if (options.format === 'csv') return renderCsv(capped);
+  if (options.format === 'json') return renderJson(capped);
+  if (options.format === 'md') return renderMarkdown(capped);
+  return renderReport(capped);
 }
 
 /** `skillscope skills` / `skillscope agents` — same view, different kind. */
@@ -56,16 +76,20 @@ export function componentView(
   kind: ComponentUsage['kind'],
   options: ViewOptions,
 ): string {
-  if (options.format === 'csv') return renderCsv(filterReport(loaded, kind, options.sort));
-  if (options.format === 'json') return renderJson(filterReport(loaded, kind, options.sort));
-  if (options.format === 'md') return renderMarkdown(filterReport(loaded, kind, options.sort));
+  const filtered = (): Report => filterReport(loaded, kind, options.sort, options.top);
+  if (options.format === 'csv') return renderCsv(filtered());
+  if (options.format === 'json') return renderJson(filtered());
+  if (options.format === 'md') return renderMarkdown(filtered());
   if (!loaded.dirs.exists) return renderEmptyState(loaded);
 
   const label =
     kind === 'skill' ? 'Skills' : kind === 'agent' ? 'Subagents' : kind === 'hook' ? 'Hooks' : kind;
 
   if (options.dead) {
-    const dead = loaded.dead.filter((c) => c.kind === kind);
+    const dead = capRows(
+      loaded.dead.filter((c) => c.kind === kind),
+      options.top,
+    );
     return [
       bold(`${label} that have never fired: ${num(dead.length)}`),
       table(dead, [
@@ -76,9 +100,12 @@ export function componentView(
     ].join('\n');
   }
 
-  const rows = (options.untracked ? loaded.untracked : loaded.used)
-    .filter((u) => u.kind === kind)
-    .sort(sorters[options.sort]);
+  const rows = capRows(
+    (options.untracked ? loaded.untracked : loaded.used)
+      .filter((u) => u.kind === kind)
+      .sort(sorters[options.sort]),
+    options.top,
+  );
 
   return [
     bold(
@@ -94,14 +121,18 @@ export function componentView(
 }
 
 export function cost(loaded: Report, options: ViewOptions): string {
-  if (options.format === 'csv') return renderCsv(loaded);
-  if (options.format === 'json') return renderJson(loaded);
-  if (options.format === 'md') return renderMarkdown(loaded);
+  const capped = capReport(loaded, options.top);
+  if (options.format === 'csv') return renderCsv(capped);
+  if (options.format === 'json') return renderJson(capped);
+  if (options.format === 'md') return renderMarkdown(capped);
   if (!loaded.dirs.exists) return renderEmptyState(loaded);
 
-  const rows = [...loaded.used, ...loaded.untracked]
-    .filter((usage) => usage.tokens.total > 0)
-    .sort(sorters.cost);
+  const rows = capRows(
+    [...loaded.used, ...loaded.untracked]
+      .filter((usage) => usage.tokens.total > 0)
+      .sort(sorters.cost),
+    options.top,
+  );
 
   return [
     bold('Measured tokens by component'),
@@ -158,12 +189,20 @@ export function wrapped(loaded: Report, period: string, themeName: string): stri
   );
 }
 
-function filterReport(loaded: Report, kind: ComponentUsage['kind'], sort: Sort): Report {
+function filterReport(
+  loaded: Report,
+  kind: ComponentUsage['kind'],
+  sort: Sort,
+  top?: number,
+): Report {
   const sorter = sorters[sort];
-  return {
-    ...loaded,
-    used: loaded.used.filter((u) => u.kind === kind).sort(sorter),
-    untracked: loaded.untracked.filter((u) => u.kind === kind).sort(sorter),
-    dead: loaded.dead.filter((c) => c.kind === kind),
-  };
+  return capReport(
+    {
+      ...loaded,
+      used: loaded.used.filter((u) => u.kind === kind).sort(sorter),
+      untracked: loaded.untracked.filter((u) => u.kind === kind).sort(sorter),
+      dead: loaded.dead.filter((c) => c.kind === kind),
+    },
+    top,
+  );
 }
