@@ -12,15 +12,49 @@ import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
 
 import { componentView, cost, report, wrapped, type Format, type Sort } from './commands.js';
+import { completionScript, SHELLS, type Shell } from './completions.js';
 import { diagnose, renderDoctor } from './doctor.js';
 import { findClaudeDirs } from './discovery/claude-dirs.js';
 import { findInstalled } from './discovery/installed.js';
 import { loadReport } from './load.js';
+import { themes } from './render/card/themes/index.js';
 
-const COMMANDS = ['report', 'skills', 'agents', 'hooks', 'cost', 'wrapped', 'doctor'] as const;
+const COMMANDS = [
+  'report',
+  'skills',
+  'agents',
+  'hooks',
+  'cost',
+  'wrapped',
+  'doctor',
+  'completions',
+] as const;
 type Command = (typeof COMMANDS)[number];
 
 const SORTS: Sort[] = ['fires', 'cost', 'last-used', 'name', 'sessions'];
+
+/**
+ * The parseArgs spec, named so `completions` can derive the flag list from the
+ * same source the parser uses — a new flag cannot go missing from completions.
+ */
+const OPTIONS = {
+  json: { type: 'boolean', default: false },
+  md: { type: 'boolean', default: false },
+  csv: { type: 'boolean', default: false },
+  since: { type: 'string' },
+  project: { type: 'string' },
+  sort: { type: 'string', default: 'fires' },
+  dead: { type: 'boolean', default: false },
+  untracked: { type: 'boolean', default: false },
+  month: { type: 'string' },
+  'all-time': { type: 'boolean', default: false },
+  theme: { type: 'string', default: 'dark' },
+  out: { type: 'string' },
+  open: { type: 'boolean', default: false },
+  'no-cache': { type: 'boolean', default: false },
+  help: { type: 'boolean', short: 'h', default: false },
+  version: { type: 'boolean', short: 'v', default: false },
+} as const;
 
 const HELP = `skillscope — which Claude Code skills, subagents and hooks actually fire
 
@@ -35,6 +69,7 @@ Commands
   cost              measured tokens by component
   wrapped           shareable SVG stats card
   doctor            sanity-check installed skills, agents, hooks and plugins
+  completions       print a shell completion script (bash | zsh)
 
 Options
   --json            machine-readable output
@@ -61,28 +96,7 @@ disk is modified. Override the location with CLAUDE_CONFIG_DIR.
 export async function run(argv: string[]): Promise<number> {
   let parsed;
   try {
-    parsed = parseArgs({
-      args: argv,
-      allowPositionals: true,
-      options: {
-        json: { type: 'boolean', default: false },
-        md: { type: 'boolean', default: false },
-        csv: { type: 'boolean', default: false },
-        since: { type: 'string' },
-        project: { type: 'string' },
-        sort: { type: 'string', default: 'fires' },
-        dead: { type: 'boolean', default: false },
-        untracked: { type: 'boolean', default: false },
-        month: { type: 'string' },
-        'all-time': { type: 'boolean', default: false },
-        theme: { type: 'string', default: 'dark' },
-        out: { type: 'string' },
-        open: { type: 'boolean', default: false },
-        'no-cache': { type: 'boolean', default: false },
-        help: { type: 'boolean', short: 'h', default: false },
-        version: { type: 'boolean', short: 'v', default: false },
-      },
-    });
+    parsed = parseArgs({ args: argv, allowPositionals: true, options: OPTIONS });
   } catch (error) {
     process.stderr.write(`${(error as Error).message}\n\n${HELP}`);
     return 2;
@@ -116,6 +130,26 @@ export async function run(argv: string[]): Promise<number> {
     dead: values.dead === true,
     untracked: values.untracked === true,
   };
+
+  if (command === 'completions') {
+    const shell = positionals[1];
+    if (shell === undefined || !SHELLS.includes(shell as Shell)) {
+      process.stderr.write(
+        `completions expects a shell (${SHELLS.join(' | ')})` +
+          `${shell === undefined ? '' : `, got: ${shell}`}\n`,
+      );
+      return 2;
+    }
+    process.stdout.write(
+      completionScript(shell as Shell, {
+        commands: COMMANDS,
+        // Derived from the parser's own spec, so a new flag is never missed.
+        flags: Object.keys(OPTIONS).map((name) => `--${name}`),
+        values: { '--sort': SORTS, '--theme': Object.keys(themes) },
+      }),
+    );
+    return 0;
+  }
 
   if (command === 'doctor') {
     // Doctor inspects what is installed; it does not need the transcript history.
