@@ -112,6 +112,22 @@ describe('report over the fixture history', () => {
   });
 });
 
+describe('hooks command', () => {
+  it('renders the hook component view', async () => {
+    expect(await run(['hooks'])).toBe(0);
+    expect(stdout()).toContain('Hooks');
+  });
+
+  it('emits parseable json and honours --dead', async () => {
+    expect(await run(['hooks', '--json'])).toBe(0);
+    expect(() => JSON.parse(stdout())).not.toThrow();
+
+    out.length = 0;
+    expect(await run(['hooks', '--dead'])).toBe(0);
+    expect(stdout()).toContain('Hooks that have never fired');
+  });
+});
+
 describe('no history to read', () => {
   it('explains instead of failing', async () => {
     process.env['CLAUDE_CONFIG_DIR'] = path.join(FIXTURES, 'nowhere');

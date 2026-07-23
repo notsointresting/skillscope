@@ -61,7 +61,8 @@ export function componentView(
   if (options.format === 'md') return renderMarkdown(filterReport(loaded, kind, options.sort));
   if (!loaded.dirs.exists) return renderEmptyState(loaded);
 
-  const label = kind === 'skill' ? 'Skills' : kind === 'agent' ? 'Subagents' : kind;
+  const label =
+    kind === 'skill' ? 'Skills' : kind === 'agent' ? 'Subagents' : kind === 'hook' ? 'Hooks' : kind;
 
   if (options.dead) {
     const dead = loaded.dead.filter((c) => c.kind === kind);
