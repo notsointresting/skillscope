@@ -128,6 +128,53 @@ describe('hooks command', () => {
   });
 });
 
+describe('--until', () => {
+  it('bounds the window from above', async () => {
+    await run(['--json']);
+    const all = JSON.parse(stdout()) as { tokens: { measuredTotal: { total: number } } };
+
+    out = [];
+    await run(['--json', '--until', '1970-01-01']);
+    const none = JSON.parse(stdout()) as { tokens: { measuredTotal: { total: number } } };
+
+    expect(all.tokens.measuredTotal.total).toBeGreaterThan(0);
+    expect(none.tokens.measuredTotal.total).toBe(0);
+  });
+
+  it('combines with --since to scope an arbitrary window', async () => {
+    expect(await run(['--json', '--since', '1970-01-01', '--until', '2099-01-01'])).toBe(0);
+    const windowed = JSON.parse(stdout()) as { tokens: { measuredTotal: { total: number } } };
+    expect(windowed.tokens.measuredTotal.total).toBeGreaterThan(0);
+
+    // An empty window (since == until) yields nothing, since --until is exclusive.
+    out = [];
+    await run(['--json', '--since', '2026-01-01', '--until', '2026-01-01']);
+    const empty = JSON.parse(stdout()) as { tokens: { measuredTotal: { total: number } } };
+    expect(empty.tokens.measuredTotal.total).toBe(0);
+  });
+
+  it('works on any command, not just wrapped', async () => {
+    expect(await run(['skills', '--until', '2099-01-01', '--json'])).toBe(0);
+    expect(() => JSON.parse(stdout())).not.toThrow();
+  });
+
+  it('rejects a malformed date on either bound', async () => {
+    for (const flag of ['--since', '--until']) {
+      err.length = 0;
+      expect(await run([flag, 'last-tuesday'])).toBe(2);
+      expect(err.join('')).toContain(`${flag} expects YYYY-MM-DD`);
+    }
+  });
+
+  it('accepts a year or year-month prefix', async () => {
+    for (const value of ['2026', '2026-07', '2026-07-21']) {
+      out.length = 0;
+      expect(await run(['--json', '--until', value])).toBe(0);
+      expect(() => JSON.parse(stdout())).not.toThrow();
+    }
+  });
+});
+
 describe('no history to read', () => {
   it('explains instead of failing', async () => {
     process.env['CLAUDE_CONFIG_DIR'] = path.join(FIXTURES, 'nowhere');

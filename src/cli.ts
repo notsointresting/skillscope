@@ -41,6 +41,7 @@ Options
   --md              markdown, for pasting into an issue
   --csv             component table as comma-separated values
   --since <date>    ignore activity before this date (YYYY-MM-DD)
+  --until <date>    ignore activity from this date onward, exclusive (YYYY-MM-DD)
   --project <text>  only sessions whose project path contains this text
   --sort <key>      fires | cost | last-used | name | sessions   (default: fires)
   --dead            list what has never fired
@@ -69,6 +70,7 @@ export async function run(argv: string[]): Promise<number> {
         md: { type: 'boolean', default: false },
         csv: { type: 'boolean', default: false },
         since: { type: 'string' },
+        until: { type: 'string' },
         project: { type: 'string' },
         sort: { type: 'string', default: 'fires' },
         dead: { type: 'boolean', default: false },
@@ -125,6 +127,14 @@ export async function run(argv: string[]): Promise<number> {
     return 0;
   }
 
+  for (const flag of ['since', 'until'] as const) {
+    const value = values[flag];
+    if (value !== undefined && !isDatePrefix(value)) {
+      process.stderr.write(`--${flag} expects YYYY-MM-DD, got: ${value}\n`);
+      return 2;
+    }
+  }
+
   let month: { since: string; until: string; label: string } | undefined;
   if (command === 'wrapped' && values.month) {
     month = monthRange(values.month);
@@ -137,6 +147,7 @@ export async function run(argv: string[]): Promise<number> {
   const loaded = await loadReport({
     ...(month ? { since: month.since, until: month.until } : {}),
     ...(!month && values.since ? { since: values.since } : {}),
+    ...(!month && values.until ? { until: values.until } : {}),
     ...(values.project ? { project: values.project } : {}),
     cache: values['no-cache'] !== true,
   });
@@ -173,6 +184,14 @@ export async function run(argv: string[]): Promise<number> {
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
   'August', 'September', 'October', 'November', 'December'];
+
+/**
+ * Date bounds are compared as string prefixes against ISO timestamps, so a year
+ * or a year-month is as valid as a full date (`monthRange` relies on that). This
+ * rejects the typo that would otherwise sort above every timestamp and silently
+ * empty the report.
+ */
+const isDatePrefix = (value: string): boolean => /^\d{4}(-\d{2}(-\d{2})?)?$/.test(value);
 
 /** "2026-07" -> filter bounds plus a human label. Undefined when malformed. */
 function monthRange(month: string): { since: string; until: string; label: string } | undefined {
