@@ -128,6 +128,25 @@ describe('hooks command', () => {
   });
 });
 
+describe('--top', () => {
+  it('rejects a non-positive or non-integer value', async () => {
+    for (const bad of ['0', '2.5', 'ten']) {
+      err.length = 0;
+      expect(await run(['skills', '--top', bad])).toBe(2);
+      expect(err.join('')).toContain('--top expects a positive integer');
+    }
+    // A negative needs the `=` form; bare `--top -3` is ambiguous to parseArgs.
+    err.length = 0;
+    expect(await run(['skills', '--top=-3'])).toBe(2);
+    expect(err.join('')).toContain('--top expects a positive integer');
+  });
+
+  it('accepts a positive integer', async () => {
+    expect(await run(['skills', '--top', '3', '--json'])).toBe(0);
+    expect(() => JSON.parse(stdout())).not.toThrow();
+  });
+});
+
 describe('no history to read', () => {
   it('explains instead of failing', async () => {
     process.env['CLAUDE_CONFIG_DIR'] = path.join(FIXTURES, 'nowhere');
