@@ -8,7 +8,7 @@
  */
 import type { ComponentUsage } from './analyze/attribute.js';
 import type { Report } from './load.js';
-import { longestStreak, renderCard, type CardStat } from './render/card/card.js';
+import { busiestDay, longestStreak, renderCard, type CardStat } from './render/card/card.js';
 import { themes, type CardTheme } from './render/card/themes/index.js';
 import { renderCsv } from './render/csv.js';
 import { renderJson } from './render/json.js';
@@ -151,6 +151,7 @@ export function wrapped(loaded: Report, period: string, themeName: string): stri
       installed: loaded.used.filter((u) => u.installed).length + loaded.dead.length,
       dead: loaded.dead.length,
       streak: longestStreak(loaded.activeDays),
+      ...(busiestDay(loaded.activeDays) ? { busiestDay: busiestDay(loaded.activeDays) } : {}),
     },
     theme,
   );

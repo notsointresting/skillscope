@@ -23,6 +23,8 @@ export interface CardStats {
   dead: number;
   /** Longest run of consecutive active days. */
   streak: number;
+  /** Weekday most active days fall on, e.g. "Tuesday". */
+  busiestDay?: string;
 }
 
 /** Longest run of consecutive `YYYY-MM-DD` days. Input need not be sorted. */
@@ -42,6 +44,30 @@ export function longestStreak(days: string[]): number {
     }
   }
   return best;
+}
+
+const WEEKDAYS = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+/** The weekday most active days fall on, e.g. "Tuesday". Undefined when there
+ * are no active days. Ties break toward the earlier weekday (Sun..Sat). */
+export function busiestDay(days: string[]): string | undefined {
+  if (days.length === 0) return undefined;
+  const counts = new Array<number>(7).fill(0);
+  for (const day of days) {
+    const weekday = new Date(`${day}T00:00:00Z`).getUTCDay();
+    if (!Number.isNaN(weekday)) counts[weekday] = (counts[weekday] ?? 0) + 1;
+  }
+  let best = 0;
+  for (let i = 1; i < 7; i++) if (counts[i]! > counts[best]!) best = i;
+  return counts[best]! > 0 ? WEEKDAYS[best] : undefined;
 }
 
 function escapeXml(text: string): string {
@@ -85,7 +111,12 @@ export function renderCard(stats: CardStats, theme: CardTheme): string {
     stats.installed > 0
       ? `${compact(stats.dead)} of ${compact(stats.installed)} installed never fired`
       : 'nothing installed yet';
-  const streakLine = stats.streak > 0 ? `${stats.streak}-day streak` : '';
+  const streakLine = [
+    stats.streak > 0 ? `${stats.streak}-day streak` : '',
+    stats.busiestDay ? `busiest ${stats.busiestDay}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
   const empty = stats.sessions === 0;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-label="SkillScope Wrapped">
