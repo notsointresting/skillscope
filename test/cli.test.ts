@@ -128,6 +128,35 @@ describe('hooks command', () => {
   });
 });
 
+describe('completions command', () => {
+  it('prints a script for each supported shell', async () => {
+    for (const shell of ['bash', 'zsh']) {
+      out.length = 0;
+      expect(await run(['completions', shell])).toBe(0);
+      expect(stdout()).toContain('_skillscope');
+      // The live command and flag lists reach the script.
+      expect(stdout()).toContain('doctor');
+      expect(stdout()).toContain('--untracked');
+    }
+  });
+
+  it('offers the real theme names, so a new theme is never missed', async () => {
+    expect(await run(['completions', 'bash'])).toBe(0);
+    expect(stdout()).toContain('--theme');
+    expect(stdout()).toContain('dark');
+    expect(stdout()).toContain('nord');
+  });
+
+  it('rejects a missing or unsupported shell', async () => {
+    expect(await run(['completions'])).toBe(2);
+    expect(err.join('')).toContain('completions expects a shell');
+
+    err.length = 0;
+    expect(await run(['completions', 'fish'])).toBe(2);
+    expect(err.join('')).toContain('got: fish');
+  });
+});
+
 describe('no history to read', () => {
   it('explains instead of failing', async () => {
     process.env['CLAUDE_CONFIG_DIR'] = path.join(FIXTURES, 'nowhere');

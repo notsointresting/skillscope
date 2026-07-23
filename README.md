@@ -56,6 +56,7 @@ skillscope agents          # subagents
 skillscope cost            # measured tokens per component
 skillscope wrapped         # shareable SVG stats card (--month 2026-07, --theme light)
 skillscope doctor          # sanity-check installed skills, agents and plugins
+skillscope completions bash # print a shell completion script (bash | zsh)
 ```
 
 Every command accepts:
@@ -78,6 +79,37 @@ and never modifies anything under `~/.claude`.
 
 Set `CLAUDE_CONFIG_DIR` to analyze a Claude Code directory somewhere other than
 `~/.claude`.
+
+## Shell completions
+
+`skillscope completions <shell>` prints a completion script for `bash` or `zsh`.
+It completes commands, flags, and the values of `--sort` and `--theme`.
+
+To try it in the current shell:
+
+```bash
+source <(skillscope completions bash)
+```
+
+To install it permanently, write it where your shell looks for completions:
+
+```bash
+# bash
+skillscope completions bash > ~/.local/share/bash-completion/completions/skillscope
+
+# zsh — any directory on your $fpath works
+skillscope completions zsh > ~/.zfunc/_skillscope
+```
+
+For zsh, make sure the directory is on `$fpath` and `compinit` has run:
+
+```zsh
+fpath=(~/.zfunc $fpath)
+autoload -Uz compinit && compinit
+```
+
+The script is generated from the CLI's own command and flag lists, so it stays
+in step with the tool — a new theme shows up in `--theme <TAB>` automatically.
 
 ## Wrapped
 
