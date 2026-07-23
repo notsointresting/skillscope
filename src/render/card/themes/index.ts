@@ -7,6 +7,7 @@ import { dracula } from './dracula.js';
 import { gruvbox } from './gruvbox.js';
 import { light } from './light.js';
 import { nord } from './nord.js';
+import { solarizedDark } from './solarized-dark.js';
 import { solarizedLight } from './solarized-light.js';
 
 export interface CardTheme {
@@ -30,5 +31,6 @@ export const themes: Record<string, CardTheme> = {
   gruvbox,
   light,
   nord,
+  'solarized-dark': solarizedDark,
   'solarized-light': solarizedLight,
 };
