@@ -128,6 +128,22 @@ describe('hooks command', () => {
   });
 });
 
+describe('mcp command', () => {
+  it('renders the MCP server component view', async () => {
+    expect(await run(['mcp'])).toBe(0);
+    expect(stdout()).toContain('MCP servers');
+  });
+
+  it('emits parseable json and honours --dead', async () => {
+    expect(await run(['mcp', '--json'])).toBe(0);
+    expect(() => JSON.parse(stdout())).not.toThrow();
+
+    out.length = 0;
+    expect(await run(['mcp', '--dead'])).toBe(0);
+    expect(stdout()).toContain('MCP servers that have never fired');
+  });
+});
+
 describe('no history to read', () => {
   it('explains instead of failing', async () => {
     process.env['CLAUDE_CONFIG_DIR'] = path.join(FIXTURES, 'nowhere');

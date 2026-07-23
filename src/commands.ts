@@ -62,7 +62,15 @@ export function componentView(
   if (!loaded.dirs.exists) return renderEmptyState(loaded);
 
   const label =
-    kind === 'skill' ? 'Skills' : kind === 'agent' ? 'Subagents' : kind === 'hook' ? 'Hooks' : kind;
+    kind === 'skill'
+      ? 'Skills'
+      : kind === 'agent'
+        ? 'Subagents'
+        : kind === 'hook'
+          ? 'Hooks'
+          : kind === 'mcp'
+            ? 'MCP servers'
+            : kind;
 
   if (options.dead) {
     const dead = loaded.dead.filter((c) => c.kind === kind);
