@@ -5,6 +5,7 @@ import { catppuccin } from './catppuccin.js';
 import { dark } from './dark.js';
 import { dracula } from './dracula.js';
 import { gruvbox } from './gruvbox.js';
+import { highContrast } from './high-contrast.js';
 import { light } from './light.js';
 import { nord } from './nord.js';
 import { solarizedLight } from './solarized-light.js';
@@ -28,6 +29,7 @@ export const themes: Record<string, CardTheme> = {
   dark,
   dracula,
   gruvbox,
+  'high-contrast': highContrast,
   light,
   nord,
   'solarized-light': solarizedLight,
